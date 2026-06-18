@@ -54,7 +54,7 @@ export function TopNav({ title, breadcrumb }: TopNavProps) {
           <HelpCircle className="w-5 h-5 text-slate-500" />
         </Button>
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">SJ</div>
+          <div className="w-8 h-8 rounded-full bg-brand-primary flex items-center justify-center text-white text-sm font-semibold">SJ</div>
           <ChevronDown className="w-4 h-4 text-slate-400" />
         </div>
       </div>

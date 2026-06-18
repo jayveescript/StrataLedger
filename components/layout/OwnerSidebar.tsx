@@ -5,6 +5,7 @@ import {
   Home, Wallet, Building2, FolderOpen, AlertTriangle, ArrowLeft
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import branding from "@/lib/branding.json"
 
 const navItems = [
   { href: "/portal", label: "My Overview", icon: Home },
@@ -22,15 +23,15 @@ export function OwnerSidebar() {
       <div className="flex flex-col h-full">
         <div className="px-6 py-5 border-b border-slate-200">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
               <Building2 className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="text-slate-900 font-bold text-lg leading-tight">StrataLedger</div>
+              <div className="text-slate-900 font-bold text-lg leading-tight">{branding.name}</div>
               <div className="text-slate-500 text-xs">Owner Portal</div>
             </div>
           </div>
-          <div className="bg-blue-50 rounded-lg p-3">
+          <div className="bg-brand-primary/10 rounded-lg p-3">
             <div className="text-slate-900 font-semibold text-sm">James Chen</div>
             <div className="text-slate-500 text-xs">Lot 7 · Southbank Residences</div>
           </div>
@@ -47,7 +48,7 @@ export function OwnerSidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-blue-50 text-blue-700"
+                    ? "bg-brand-primary/10 text-brand-primary"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
