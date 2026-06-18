@@ -14,7 +14,7 @@ import { mockLots } from "@/lib/mock-data/lots"
 import { mockOwners } from "@/lib/mock-data/owners"
 import { mockStrataPlans } from "@/lib/mock-data/strata-plans"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { Search, DollarSign, AlertTriangle, TrendingDown, Bell, CheckSquare, CheckCircle2 } from "lucide-react"
+import { Search, DollarSign, AlertTriangle, TrendingDown, Bell, CheckSquare, CheckCircle2, FileText, Clock, ChevronRight } from "lucide-react"
 
 const TODAY = "2026-06-18"
 
@@ -367,6 +367,60 @@ function RecordPaymentDialog({
   )
 }
 
+// ---------- Debt Recovery Data ----------
+const mockDebtRecovery = [
+  {
+    id: "dr-1",
+    lotNumber: "Lot 12",
+    ownerName: "Michael O'Brien",
+    planName: "Southbank Residences",
+    amountOwed: 2500,
+    daysOverdue: 77,
+    stage: 4, // Legal Action
+    stageLabel: "Legal Action",
+    lastAction: "2026-05-15",
+    nextAction: "Referred to debt recovery agency",
+  },
+  {
+    id: "dr-2",
+    lotNumber: "Lot 9",
+    ownerName: "Aisha Rahman",
+    planName: "Southbank Residences",
+    amountOwed: 2000,
+    daysOverdue: 49,
+    stage: 3, // Payment Plan Offer
+    stageLabel: "Payment Plan Offer",
+    lastAction: "2026-05-28",
+    nextAction: "Instalment schedule proposed",
+  },
+  {
+    id: "dr-3",
+    lotNumber: "Lot 1",
+    ownerName: "John Papadopoulos",
+    planName: "St Kilda Beach Villas",
+    amountOwed: 1200,
+    daysOverdue: 25,
+    stage: 2, // Final Notice
+    stageLabel: "Final Notice",
+    lastAction: "2026-06-05",
+    nextAction: "Formal letter generated",
+  },
+]
+
+function getStageColor(stage: number): string {
+  if (stage === 1) return "bg-yellow-100 text-yellow-800 border-yellow-200"
+  if (stage === 2) return "bg-amber-100 text-amber-800 border-amber-200"
+  if (stage === 3) return "bg-orange-100 text-orange-800 border-orange-200"
+  return "bg-red-100 text-red-800 border-red-200"
+}
+
+function getStageProgressColor(stage: number): string {
+  if (stage === 1) return "bg-yellow-400"
+  if (stage === 2) return "bg-amber-500"
+  if (stage === 3) return "bg-orange-500"
+  return "bg-red-600"
+}
+
 // ---------- Page ----------
 export default function LeviesPage() {
   const [search, setSearch] = useState("")
@@ -374,6 +428,13 @@ export default function LeviesPage() {
   const [planFilter, setPlanFilter] = useState("all")
   const [issueLevyOpen, setIssueLevyOpen] = useState(false)
   const [paymentLevy, setPaymentLevy] = useState<typeof mockLevies[0] | null>(null)
+  const [drToast, setDrToast] = useState("")
+  const [paymentPlanOpen, setPaymentPlanOpen] = useState(false)
+  const [paymentPlanTarget, setPaymentPlanTarget] = useState<typeof mockDebtRecovery[0] | null>(null)
+  const [ppInstalments, setPpInstalments] = useState("3")
+  const [ppFirstDate, setPpFirstDate] = useState("2026-07-01")
+  const [ppSubmitted, setPpSubmitted] = useState(false)
+  const [advancedStages, setAdvancedStages] = useState<Record<string, number>>({})
 
   const totalIssued = mockLevies.reduce((s, l) => s + l.amount, 0)
   const totalCollected = mockLevies.filter(l => l.status === "paid").reduce((s, l) => s + l.paidAmount, 0)
@@ -534,10 +595,171 @@ export default function LeviesPage() {
             </table>
           </CardContent>
         </Card>
+
+        {/* DEBT RECOVERY SECTION */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Debt Recovery</h2>
+              <p className="text-sm text-slate-500">Multi-stage recovery process for overdue levies</p>
+            </div>
+          </div>
+
+          {/* Stage Legend */}
+          <div className="flex flex-wrap gap-3 mb-4 text-xs">
+            {[
+              { stage: 1, label: "Stage 1 — Reminder (7+ days)", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+              { stage: 2, label: "Stage 2 — Final Notice (21+ days)", color: "bg-amber-100 text-amber-800 border-amber-200" },
+              { stage: 3, label: "Stage 3 — Payment Plan (30+ days)", color: "bg-orange-100 text-orange-800 border-orange-200" },
+              { stage: 4, label: "Stage 4 — Legal Action (45+ days)", color: "bg-red-100 text-red-800 border-red-200" },
+            ].map(s => (
+              <span key={s.stage} className={`px-2.5 py-1 rounded-full border font-medium ${s.color}`}>{s.label}</span>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            {mockDebtRecovery.map((dr) => {
+              const currentStage = advancedStages[dr.id] ?? dr.stage
+              const progressPct = (currentStage / 4) * 100
+              return (
+                <Card key={dr.id}>
+                  <CardContent className="p-5">
+                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-slate-900">{dr.lotNumber} — {dr.ownerName}</span>
+                          <span className={`px-2 py-0.5 rounded-full border text-xs font-medium ${getStageColor(currentStage)}`}>
+                            Stage {currentStage}: {currentStage === 1 ? "Reminder" : currentStage === 2 ? "Final Notice" : currentStage === 3 ? "Payment Plan Offer" : "Legal Action"}
+                          </span>
+                        </div>
+                        <div className="text-sm text-slate-500 mb-3">{dr.planName} · {dr.daysOverdue} days overdue · Amount: {formatCurrency(dr.amountOwed)}</div>
+                        {/* Stage Progress Bar */}
+                        <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden w-full max-w-xs">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${getStageProgressColor(currentStage)}`}
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">{dr.nextAction}</div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {currentStage < 4 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-orange-700 border-orange-200 hover:bg-orange-50 text-xs"
+                            onClick={() => {
+                              setAdvancedStages(prev => ({ ...prev, [dr.id]: currentStage + 1 }))
+                              setDrToast(`Stage advanced to Stage ${currentStage + 1} for ${dr.ownerName}`)
+                              setTimeout(() => setDrToast(""), 3000)
+                            }}
+                          >
+                            <ChevronRight className="w-3 h-3 mr-1" />
+                            Advance Stage
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-blue-700 border-blue-200 hover:bg-blue-50 text-xs"
+                          onClick={() => {
+                            setDrToast(`Formal notice PDF generating for ${dr.ownerName}...`)
+                            setTimeout(() => setDrToast(""), 3000)
+                          }}
+                        >
+                          <FileText className="w-3 h-3 mr-1" />
+                          Generate Formal Notice PDF
+                        </Button>
+                        {currentStage >= 3 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-700 border-green-200 hover:bg-green-50 text-xs"
+                            onClick={() => {
+                              setPaymentPlanTarget(dr)
+                              setPpInstalments("3")
+                              setPpFirstDate("2026-07-01")
+                              setPpSubmitted(false)
+                              setPaymentPlanOpen(true)
+                            }}
+                          >
+                            <Clock className="w-3 h-3 mr-1" />
+                            Offer Payment Plan
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       <IssueLevyDialog open={issueLevyOpen} onOpenChange={setIssueLevyOpen} />
       <RecordPaymentDialog levy={paymentLevy} onOpenChange={() => setPaymentLevy(null)} />
+
+      {/* Payment Plan Modal */}
+      <Dialog open={paymentPlanOpen} onOpenChange={(open) => { if (!open) setPaymentPlanOpen(false) }}>
+        <DialogContent className="max-w-md">
+          {ppSubmitted ? (
+            <div className="flex flex-col items-center py-8 gap-4 text-center">
+              <CheckCircle2 className="w-14 h-14 text-green-500" />
+              <div>
+                <div className="font-semibold text-slate-900 mb-1">Payment Plan Sent</div>
+                <div className="text-sm text-slate-500">
+                  {paymentPlanTarget?.ownerName} has been offered a {ppInstalments}-instalment payment plan for {paymentPlanTarget ? formatCurrency(paymentPlanTarget.amountOwed) : ""}, starting {ppFirstDate}.
+                </div>
+              </div>
+              <Button onClick={() => setPaymentPlanOpen(false)}>Done</Button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Offer Payment Plan</DialogTitle>
+                <DialogDescription>
+                  Propose an instalment schedule for {paymentPlanTarget?.ownerName} ({paymentPlanTarget?.lotNumber}) — {paymentPlanTarget ? formatCurrency(paymentPlanTarget.amountOwed) : ""} outstanding.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 mt-2">
+                <div className="space-y-1.5">
+                  <Label>Number of Instalments</Label>
+                  <Select value={ppInstalments} onValueChange={setPpInstalments}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">2 instalments</SelectItem>
+                      <SelectItem value="3">3 instalments</SelectItem>
+                      <SelectItem value="4">4 instalments</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>First Payment Due Date</Label>
+                  <Input type="date" value={ppFirstDate} onChange={e => setPpFirstDate(e.target.value)} />
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm">
+                  <div className="text-slate-500 mb-1">Instalment amount (auto-calculated)</div>
+                  <div className="text-xl font-bold text-slate-900">
+                    {paymentPlanTarget ? formatCurrency(paymentPlanTarget.amountOwed / Number(ppInstalments)) : "$0.00"} × {ppInstalments}
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={() => setPaymentPlanOpen(false)}>Cancel</Button>
+                  <Button onClick={() => setPpSubmitted(true)}>Send to Owner</Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {drToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium">
+          <CheckCircle2 className="w-4 h-4" />
+          {drToast}
+        </div>
+      )}
     </div>
   )
 }

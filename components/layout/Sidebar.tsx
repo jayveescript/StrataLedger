@@ -4,17 +4,26 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Building2, Users, Wallet, FileText,
   BarChart3, Hammer, ClipboardList, AlertTriangle,
-  Settings, ArrowRightLeft
+  Settings, ArrowRightLeft, Wrench, Briefcase
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import branding from "@/lib/branding.json"
 
-const navItems = [
+type NavItem = {
+  href: string
+  label: string
+  icon: React.ElementType
+  badge?: string
+}
+
+const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/strata-plans", label: "Strata Plans", icon: Building2 },
   { href: "/owners", label: "Owners", icon: Users },
   { href: "/levies", label: "Levies", icon: Wallet },
   { href: "/expenses", label: "Expenses", icon: FileText },
+  { href: "/suppliers", label: "Suppliers & Work Orders", icon: Wrench },
+  { href: "/commission-register", label: "Commission Register", icon: Briefcase, badge: "NEW" },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/capital-works", label: "Capital Works", icon: Hammer },
   { href: "/agm", label: "AGM & Voting", icon: ClipboardList },
@@ -56,7 +65,12 @@ export function Sidebar() {
                 )}
               >
                 <Icon className="w-4 h-4 flex-shrink-0" />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.badge && !isActive && (
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-brand-primary text-white font-bold leading-none">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             )
           })}

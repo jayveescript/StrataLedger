@@ -20,7 +20,7 @@ import { CapitalWorksForecastChart } from "@/components/charts/CapitalWorksForec
 import { mockStrataPlans } from "@/lib/mock-data/strata-plans"
 import { mockCapitalWorksItems } from "@/lib/mock-data/capital-works"
 import { formatCurrency } from "@/lib/utils"
-import { Plus, CheckCircle2 } from "lucide-react"
+import { Plus, CheckCircle2, FileText } from "lucide-react"
 
 function PriorityBadge({ priority }: { priority: string }) {
   if (priority === "high") return <Badge variant="destructive">High</Badge>
@@ -49,6 +49,10 @@ const EMPTY_FORM: AddItemForm = {
 export default function CapitalWorksPage() {
   const [selectedPlan, setSelectedPlan] = useState("1")
   const [levyPerLot, setLevyPerLot] = useState([400])
+
+  // New scenario modeller state
+  const [scenarioLevy, setScenarioLevy] = useState([1150])
+  const [cwToast, setCwToast] = useState("")
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -98,6 +102,122 @@ export default function CapitalWorksPage() {
     <div>
       <TopNav title="Capital Works" breadcrumb="Planning" />
       <div className="p-6 space-y-6">
+
+        {/* SECTION A: Competitive advantage badge */}
+        <div className="flex justify-end">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-brand-primary/10 text-brand-primary font-medium border border-brand-primary/20">
+            ⭐ Special levy predictor not available in IntelliStrata
+          </span>
+        </div>
+
+        {/* SECTION B: Risk Dashboard */}
+        <div className="grid lg:grid-cols-3 gap-4">
+          {/* Card 1 — Southbank — HIGH RISK */}
+          <div className="border border-red-200 rounded-xl p-5 bg-red-50">
+            <div className="text-sm font-semibold text-slate-700 mb-3">Southbank Residences</div>
+            <div className="text-6xl font-bold text-red-600 mb-2">68%</div>
+            <div className="text-xs text-slate-500 mb-3">Special Levy Risk</div>
+            <span className="inline-block px-2.5 py-1 rounded-full bg-red-100 text-red-800 border border-red-200 text-xs font-semibold mb-3">⚠️ HIGH RISK</span>
+            <div className="space-y-1 text-sm text-slate-600">
+              <div>Fund deficit projected: <strong>2029</strong></div>
+              <div>Shortfall: <strong className="text-red-600">$193,000.00</strong></div>
+              <div>Recommended increase: <strong>+$38.50/lot/qtr</strong></div>
+            </div>
+          </div>
+
+          {/* Card 2 — Collins St — MEDIUM RISK */}
+          <div className="border border-amber-200 rounded-xl p-5 bg-amber-50">
+            <div className="text-sm font-semibold text-slate-700 mb-3">Collins Street Apartments</div>
+            <div className="text-6xl font-bold text-amber-600 mb-2">35%</div>
+            <div className="text-xs text-slate-500 mb-3">Special Levy Risk</div>
+            <span className="inline-block px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold mb-3">🟡 MEDIUM RISK</span>
+            <div className="space-y-1 text-sm text-slate-600">
+              <div>Fund deficit projected: <strong>2031</strong></div>
+              <div>Shortfall: <strong className="text-amber-600">$42,000.00</strong></div>
+              <div>Recommended increase: <strong>+$12.00/lot/qtr</strong></div>
+            </div>
+          </div>
+
+          {/* Card 3 — St Kilda — LOW RISK */}
+          <div className="border border-green-200 rounded-xl p-5 bg-green-50">
+            <div className="text-sm font-semibold text-slate-700 mb-3">St Kilda Beach Villas</div>
+            <div className="text-6xl font-bold text-green-600 mb-2">15%</div>
+            <div className="text-xs text-slate-500 mb-3">Special Levy Risk</div>
+            <span className="inline-block px-2.5 py-1 rounded-full bg-green-100 text-green-800 border border-green-200 text-xs font-semibold mb-3">✅ LOW RISK</span>
+            <div className="space-y-1 text-sm text-slate-600">
+              <div>Fund solvent until: <strong>2035+</strong></div>
+              <div>Surplus: <strong className="text-green-600">+$8,000.00</strong></div>
+              <div>No increase recommended</div>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION C: What-If Scenario Modeller */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>What-If Scenario Modeller</CardTitle>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-brand-primary/10 text-brand-primary font-medium border border-brand-primary/20">
+                ⭐ Not available in IntelliStrata
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-sm text-slate-600 mb-2">Plan: <strong>Southbank Residences</strong></div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-700">Quarterly levy per lot</span>
+                <span className="font-bold text-brand-primary text-lg">${scenarioLevy[0].toLocaleString()}/lot/qtr</span>
+              </div>
+              <Slider value={scenarioLevy} onValueChange={setScenarioLevy} min={850} max={1500} step={50} className="w-full" />
+              <div className="text-xs text-slate-400 flex justify-between">
+                <span>$850</span><span>$1,500</span>
+              </div>
+            </div>
+            {/* Results box */}
+            {(() => {
+              const v = scenarioLevy[0]
+              const res = v < 1100
+                ? { solvency: "July 2029", risk: "HIGH ⚠️", riskClass: "text-red-600", boxClass: "bg-red-50 border-red-200", levy: "$4,800.00/lot needed" }
+                : v < 1300
+                ? { solvency: "March 2031", risk: "MEDIUM 🟡", riskClass: "text-amber-600", boxClass: "bg-amber-50 border-amber-200", levy: "$2,100.00/lot needed" }
+                : { solvency: "2035+", risk: "LOW ✅", riskClass: "text-green-600", boxClass: "bg-green-50 border-green-200", levy: "No special levy projected" }
+              return (
+                <div className={`border rounded-lg p-4 space-y-1 text-sm ${res.boxClass}`}>
+                  <div>At <strong>${v.toLocaleString()}/lot</strong>:</div>
+                  <div>Fund solvent until: <strong>{res.solvency}</strong></div>
+                  <div>Special levy risk: <strong className={res.riskClass}>{res.risk}</strong></div>
+                  <div>Special levy: <strong>{res.levy}</strong></div>
+                </div>
+              )
+            })()}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setCwToast("Special Levy Risk Report PDF generating..."); setTimeout(() => setCwToast(""), 3000) }}
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Generate Special Levy Risk Report PDF
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* SECTION D: Plain English Summary */}
+        <Card className="border-brand-primary/30 bg-brand-primary/5">
+          <CardContent className="p-5">
+            <div className="text-sm font-semibold text-slate-700 mb-2">📋 What does this mean for Lot 7 owners?</div>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              {scenarioLevy[0] < 1100
+                ? "If the levy stays at $" + scenarioLevy[0].toLocaleString() + "/quarter and no changes are made, your building is likely to need a special levy of approximately $4,800 per lot in 2029 to fund the lift modernisation and external painting. Increasing the quarterly levy by $38.50 now would spread this cost and avoid the special levy entirely."
+                : scenarioLevy[0] < 1300
+                ? "At $" + scenarioLevy[0].toLocaleString() + "/quarter, the capital works fund faces a shortfall in 2031. A modest special levy of approximately $2,100/lot would be needed. Increasing contributions slightly now can defer or eliminate this."
+                : "At $" + scenarioLevy[0].toLocaleString() + "/quarter, the capital works fund is projected to remain solvent through 2035 with no special levy needed. Well-managed contributions are keeping the building's long-term finances healthy."
+              }
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* EXISTING: Plan selector */}
         <div className="flex items-center gap-4">
           <label className="text-sm font-medium text-slate-700">Strata Plan</label>
           <Select value={selectedPlan} onValueChange={setSelectedPlan}>
@@ -112,6 +232,7 @@ export default function CapitalWorksPage() {
           </Select>
         </div>
 
+        {/* EXISTING: Fund Health + 10-Year Forecast grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           <Card>
             <CardHeader><CardTitle>Fund Health</CardTitle></CardHeader>
@@ -179,6 +300,7 @@ export default function CapitalWorksPage() {
           </Card>
         </div>
 
+        {/* EXISTING: 10-Year Maintenance Schedule table */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -221,7 +343,7 @@ export default function CapitalWorksPage() {
         </Card>
       </div>
 
-      {/* Add Item Dialog */}
+      {/* EXISTING: Add Item Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeAndReset() }}>
         <DialogContent className="max-w-lg">
           {submitted ? (
@@ -332,6 +454,14 @@ export default function CapitalWorksPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* NEW: Toast notification */}
+      {cwToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4" />
+          {cwToast}
+        </div>
+      )}
     </div>
   )
 }

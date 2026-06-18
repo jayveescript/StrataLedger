@@ -28,9 +28,11 @@ export default function LandingPage() {
             <span className="font-bold text-xl text-slate-900">StrataLedger</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-slate-600 hover:text-slate-900 text-sm font-medium">Features</a>
-            <a href="#pricing" className="text-slate-600 hover:text-slate-900 text-sm font-medium">Pricing</a>
-            <a href="#about" className="text-slate-600 hover:text-slate-900 text-sm font-medium">About</a>
+            <Link href="#features" className="text-sm text-slate-600 hover:text-slate-900">Features</Link>
+            <Link href="#pricing" className="text-sm text-slate-600 hover:text-slate-900">Pricing</Link>
+            <Link href="/security" className="text-sm text-slate-600 hover:text-slate-900">Security</Link>
+            <Link href="/api-docs" className="text-sm text-slate-600 hover:text-slate-900">API</Link>
+            <Link href="#about" className="text-sm text-slate-600 hover:text-slate-900">About</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/dashboard">
@@ -178,6 +180,78 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* INTELLISTRATA COMPARISON */}
+      <section className="py-20 bg-white" id="comparison">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">
+              Everything IntelliStrata does,<br />
+              <span className="text-brand-primary">plus what they don&apos;t.</span>
+            </h2>
+            <p className="text-slate-600">We built everything strata managers already expect — then added everything owners have been asking for.</p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b-2 border-slate-200">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700 w-1/2">Feature</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-slate-500 w-1/4">IntelliStrata</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-brand-primary w-1/4">StrataLedger</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Trust accounting", "✅", "✅"],
+                  ["Levy management", "✅", "✅"],
+                  ["AI invoice digitisation", "✅", "✅"],
+                  ["Bank integration", "✅ Partial", "✅ All banks"],
+                  ["AGM management + voting", "✅", "✅"],
+                  ["Maintenance + work orders", "✅", "✅"],
+                  ["SMS + email communications", "✅", "✅"],
+                  ["Owner portal", "✅ Basic", "✅ Full"],
+                  ["Debt recovery", "✅", "✅"],
+                  ["Supplier management", "✅", "✅"],
+                  ["ISO 27001 certified", "✅", "🔄 In progress"],
+                ].map(([feature, intel, strata]) => (
+                  <tr key={feature} className="border-b border-slate-100 hover:bg-slate-50">
+                    <td className="py-3 px-4 text-sm text-slate-700">{feature}</td>
+                    <td className="py-3 px-4 text-center text-sm text-slate-500">{intel}</td>
+                    <td className="py-3 px-4 text-center text-sm font-medium text-slate-700">{strata}</td>
+                  </tr>
+                ))}
+                <tr>
+                  <td colSpan={3} className="py-2 px-4">
+                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2">StrataLedger Exclusive Features</div>
+                  </td>
+                </tr>
+                {[
+                  ["Commission disclosure register", "❌", "✅"],
+                  ["Conflict of interest flagging", "❌", "✅"],
+                  ["Special levy predictor", "❌", "✅"],
+                  ["What-if fund modeller", "❌", "✅"],
+                  ["Complaint + dispute module", "❌", "✅"],
+                  ["VCAT submission package", "❌", "✅"],
+                  ["Self-managed OC mode", "❌", "✅"],
+                  ["Manager handover pack", "❌", "✅"],
+                  ["Auditor collaboration workflow", "❌", "✅"],
+                  ["Open REST API", "❌", "✅"],
+                  ["All Australian banks (CSV)", "❌", "✅"],
+                  ["Transparent pricing", "❌", "✅"],
+                  ["Built for new OC laws 2025", "❌", "✅"],
+                ].map(([feature, intel, strata]) => (
+                  <tr key={feature} className="border-b border-green-100 bg-green-50/50 hover:bg-green-50">
+                    <td className="py-3 px-4 text-sm text-slate-700 font-medium">{feature}</td>
+                    <td className="py-3 px-4 text-center text-sm text-slate-400">{intel}</td>
+                    <td className="py-3 px-4 text-center text-sm font-bold text-green-600">{strata}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id="pricing" className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
@@ -187,7 +261,34 @@ export default function LandingPage() {
               <span className="text-slate-400 font-normal text-2xl">(Unlike your strata manager.)</span>
             </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Self-Managed Plan */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-8">
+              <div className="mb-6">
+                <div className="text-sm font-medium text-slate-500 mb-1">SELF-MANAGED</div>
+                <div className="text-2xl font-bold text-slate-900 mb-2">For buildings without a strata manager</div>
+                <div className="space-y-1 text-sm text-slate-600">
+                  <div>Free — up to 6 lots</div>
+                  <div>$19/mo — up to 15 lots</div>
+                  <div>$39/mo — up to 30 lots</div>
+                </div>
+                <div className="mt-3 text-sm font-medium text-brand-primary italic">&quot;Fired your strata manager? We&apos;ve got you covered.&quot;</div>
+              </div>
+              <div className="space-y-2 mb-8">
+                {["Fund tracking (Admin + Capital Works)", "Levy management", "Expense recording", "Owner portal for all lot owners", "AGM agenda builder", "Basic reports", "Commission register (N/A — no manager)", "Capital works planning"].map(f => (
+                  <div key={f} className="flex items-center gap-2 text-sm text-slate-700">
+                    <span className="text-green-500">✅</span>{f}
+                  </div>
+                ))}
+                {["Trust accounting", "Bank integration", "Debt recovery"].map(f => (
+                  <div key={f} className="flex items-center gap-2 text-sm text-slate-400">
+                    <span>❌</span>{f}
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" className="w-full">Get Started Free</Button>
+            </div>
+
             {/* Owner Plan */}
             <div className="border border-slate-200 rounded-2xl p-8 bg-white">
               <div className="text-slate-500 font-medium text-sm mb-2">Owner Plan</div>
@@ -380,6 +481,9 @@ export default function LandingPage() {
                 <div className="space-y-2 text-sm">
                   <div><a href="#features" className="hover:text-white">Features</a></div>
                   <div><a href="#pricing" className="hover:text-white">Pricing</a></div>
+                  <div><Link href="/security" className="hover:text-white">Security</Link></div>
+                  <div><Link href="/api-docs" className="hover:text-white">API Docs</Link></div>
+                  <div><a href="#about" className="hover:text-white">About</a></div>
                   <div><Link href="/dashboard" className="hover:text-white">Manager Demo</Link></div>
                   <div><Link href="/portal" className="hover:text-white">Owner Demo</Link></div>
                 </div>

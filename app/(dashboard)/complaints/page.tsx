@@ -6,13 +6,13 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { mockComplaints } from "@/lib/mock-data/complaints"
 import { mockOwners } from "@/lib/mock-data/owners"
 import { mockLots } from "@/lib/mock-data/lots"
 import { mockStrataPlans } from "@/lib/mock-data/strata-plans"
 import { formatDate } from "@/lib/utils"
-import { AlertTriangle, ExternalLink, FileText } from "lucide-react"
+import { AlertTriangle, CheckCircle2, ExternalLink, FileText } from "lucide-react"
 
 type Complaint = typeof mockComplaints[0]
 
@@ -47,6 +47,8 @@ export default function ComplaintsPage() {
   const [selected, setSelected] = useState<Complaint | null>(null)
   const [response, setResponse] = useState("")
   const [savedResponse, setSavedResponse] = useState(false)
+  const [vcatOpen, setVcatOpen] = useState(false)
+  const [vcatGenerating, setVcatGenerating] = useState(false)
 
   const open = mockComplaints.filter(c => c.status === "open").length
   const inProgress = mockComplaints.filter(c => c.status === "in-progress").length
@@ -57,6 +59,12 @@ export default function ComplaintsPage() {
     <div>
       <TopNav title="Complaints" breadcrumb="Governance" />
       <div className="p-6 space-y-6">
+        <div className="flex justify-end">
+          <span className="text-xs px-2.5 py-1 rounded-full bg-brand-primary/10 text-brand-primary font-medium border border-brand-primary/20">
+            ⭐ Complaint module not available in IntelliStrata
+          </span>
+        </div>
+
         <div className="grid grid-cols-4 gap-4">
           {[
             { label: "Open", value: open, color: "text-amber-600" },
@@ -204,15 +212,64 @@ export default function ComplaintsPage() {
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Escalate to Consumer Affairs
                       </Button>
-                      <Button variant="outline" className="text-blue-700 border-blue-200 hover:bg-blue-50">
+                      <Button
+                        variant="outline"
+                        className="text-blue-700 border-blue-200 hover:bg-blue-50"
+                        onClick={() => setVcatOpen(true)}
+                      >
                         <FileText className="w-4 h-4 mr-2" />
                         Generate VCAT Package
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2 pt-3 border-t border-slate-100">
+                      <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">Internal Note (not visible to owner)</div>
+                      <Textarea
+                        placeholder="Add an internal note visible only to strata managers..."
+                        className="min-h-[70px] bg-amber-50 border-amber-200 text-xs"
+                      />
+                      <Button size="sm" variant="outline" className="text-xs text-amber-700 border-amber-200 hover:bg-amber-50">
+                        Save Internal Note
                       </Button>
                     </div>
                   </div>
                 </div>
               </>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={vcatOpen} onOpenChange={(open) => { if (!open) { setVcatOpen(false); setVcatGenerating(false) } }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Generate VCAT Package</DialogTitle>
+              <DialogDescription>Compile all relevant records into a submission-ready package for VCAT (Victorian Civil and Administrative Tribunal).</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 mt-2">
+              <div className="text-sm font-medium text-slate-700">What&apos;s included:</div>
+              <div className="space-y-2">
+                {["Complaint history + timeline", "Manager responses", "Financial statements (relevant period)", "Commission disclosure register", "Audit trail of relevant transactions", "Levy history for complainant", "Correspondence log"].map(item => (
+                  <div key={item} className="flex items-center gap-2 text-sm text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+              {vcatGenerating ? (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                  <CheckCircle2 className="w-4 h-4" />
+                  VCAT package generating... This may take a moment.
+                </div>
+              ) : (
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button variant="outline" onClick={() => setVcatOpen(false)}>Cancel</Button>
+                  <Button onClick={() => { setVcatGenerating(true); setTimeout(() => setVcatOpen(false), 2500) }}>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Generate VCAT Package PDF
+                  </Button>
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>

@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Home, Wallet, Building2, FolderOpen, AlertTriangle, ArrowLeft
+  Home, Wallet, Building2, FolderOpen, AlertTriangle, ArrowLeft, Briefcase, Shield
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import branding from "@/lib/branding.json"
@@ -11,8 +11,10 @@ const navItems = [
   { href: "/portal", label: "My Overview", icon: Home },
   { href: "/portal/levies", label: "My Levies", icon: Wallet },
   { href: "/portal/funds", label: "Fund Balances", icon: Building2 },
+  { href: "/commission-register", label: "Commission Register", icon: Briefcase },
   { href: "/portal/documents", label: "Documents", icon: FolderOpen },
   { href: "/portal/complaints", label: "Complaints", icon: AlertTriangle },
+  { href: "/security", label: "Privacy & Security", icon: Shield },
 ]
 
 export function OwnerSidebar() {
