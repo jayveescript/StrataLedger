@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard, Building2, Users, Wallet, FileText,
   BarChart3, Hammer, ClipboardList, AlertTriangle,
-  Settings, ArrowRightLeft, Wrench, Briefcase
+  Settings, ArrowRightLeft, Wrench, Briefcase, Scale
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import branding from "@/lib/branding.json"
@@ -24,6 +24,7 @@ const navItems: NavItem[] = [
   { href: "/expenses", label: "Expenses", icon: FileText },
   { href: "/suppliers", label: "Suppliers & Work Orders", icon: Wrench },
   { href: "/commission-register", label: "Commission Register", icon: Briefcase, badge: "NEW" },
+  { href: "/rules", label: "Rules Engine", icon: Scale, badge: "NEW" },
   { href: "/reports", label: "Reports", icon: BarChart3 },
   { href: "/capital-works", label: "Capital Works", icon: Hammer },
   { href: "/agm", label: "AGM & Voting", icon: ClipboardList },
