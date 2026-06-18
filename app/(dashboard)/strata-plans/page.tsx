@@ -5,10 +5,42 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { mockStrataPlans } from "@/lib/mock-data/strata-plans"
-import { Building2, MapPin, Search, Plus, Calendar, Users } from "lucide-react"
+import { Building2, MapPin, Search, Plus, Calendar, Users, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
 import { formatCurrency, formatDate } from "@/lib/utils"
+
+const STATES = ["VIC", "NSW", "QLD", "WA", "SA", "ACT", "TAS", "NT"]
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+]
+
+const EMPTY_FORM = {
+  planName: "",
+  planNumber: "",
+  streetAddress: "",
+  suburb: "",
+  state: "VIC",
+  postcode: "",
+  totalLots: "",
+  financialYearStart: "July",
+}
 
 function HealthBadge({ status }: { status: string }) {
   if (status === "healthy") return <Badge variant="success">Healthy</Badge>
@@ -18,12 +50,61 @@ function HealthBadge({ status }: { status: string }) {
 
 export default function StrataPlansPage() {
   const [search, setSearch] = useState("")
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [errors, setErrors] = useState<Partial<typeof EMPTY_FORM>>({})
 
   const filtered = mockStrataPlans.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.planNumber.toLowerCase().includes(search.toLowerCase()) ||
     p.address.toLowerCase().includes(search.toLowerCase())
   )
+
+  function handleOpen() {
+    setForm(EMPTY_FORM)
+    setErrors({})
+    setSubmitted(false)
+    setDialogOpen(true)
+  }
+
+  function handleClose() {
+    setDialogOpen(false)
+    // Reset after close animation
+    setTimeout(() => {
+      setSubmitted(false)
+      setForm(EMPTY_FORM)
+      setErrors({})
+    }, 200)
+  }
+
+  function setField(key: keyof typeof EMPTY_FORM, value: string) {
+    setForm(prev => ({ ...prev, [key]: value }))
+    if (errors[key]) setErrors(prev => ({ ...prev, [key]: undefined }))
+  }
+
+  function validate() {
+    const next: Partial<typeof EMPTY_FORM> = {}
+    if (!form.planName.trim()) next.planName = "Required"
+    if (!form.planNumber.trim()) next.planNumber = "Required"
+    if (!form.streetAddress.trim()) next.streetAddress = "Required"
+    if (!form.suburb.trim()) next.suburb = "Required"
+    if (!form.postcode.trim()) next.postcode = "Required"
+    else if (!/^\d{4}$/.test(form.postcode)) next.postcode = "Must be 4 digits"
+    if (!form.totalLots) next.totalLots = "Required"
+    else if (Number(form.totalLots) < 2) next.totalLots = "Minimum 2 lots"
+    return next
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const errs = validate()
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      return
+    }
+    setSubmitted(true)
+  }
 
   return (
     <div>
@@ -39,7 +120,7 @@ export default function StrataPlansPage() {
               className="pl-9"
             />
           </div>
-          <Button>
+          <Button onClick={handleOpen}>
             <Plus className="w-4 h-4 mr-2" />
             Add Plan
           </Button>
@@ -113,6 +194,140 @@ export default function StrataPlansPage() {
           ))}
         </div>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={open => { if (!open) handleClose() }}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          {submitted ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-4">
+              <CheckCircle2 className="w-14 h-14 text-green-500" />
+              <div className="text-center">
+                <p className="text-lg font-semibold text-slate-900">Plan Added Successfully</p>
+                <p className="text-sm text-slate-500 mt-1">
+                  <span className="font-medium">{form.planName}</span> has been added to the portfolio.
+                </p>
+              </div>
+              <Button onClick={handleClose} className="mt-2">Done</Button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Add Strata Plan</DialogTitle>
+                <DialogDescription>Enter the details for the new strata plan.</DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+                {/* Plan Name */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="planName">Plan Name <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="planName"
+                    value={form.planName}
+                    onChange={e => setField("planName", e.target.value)}
+                    placeholder="e.g. Southbank Residences"
+                  />
+                  {errors.planName && <p className="text-xs text-red-500">{errors.planName}</p>}
+                </div>
+
+                {/* Plan Number */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="planNumber">Plan Number <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="planNumber"
+                    value={form.planNumber}
+                    onChange={e => setField("planNumber", e.target.value)}
+                    placeholder="OC-SP-000456"
+                  />
+                  {errors.planNumber && <p className="text-xs text-red-500">{errors.planNumber}</p>}
+                </div>
+
+                {/* Street Address */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="streetAddress">Street Address <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="streetAddress"
+                    value={form.streetAddress}
+                    onChange={e => setField("streetAddress", e.target.value)}
+                    placeholder="e.g. 123 Collins Street"
+                  />
+                  {errors.streetAddress && <p className="text-xs text-red-500">{errors.streetAddress}</p>}
+                </div>
+
+                {/* Suburb + State + Postcode row */}
+                <div className="grid grid-cols-5 gap-3">
+                  <div className="col-span-2 space-y-1.5">
+                    <Label htmlFor="suburb">Suburb <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="suburb"
+                      value={form.suburb}
+                      onChange={e => setField("suburb", e.target.value)}
+                      placeholder="e.g. Melbourne"
+                    />
+                    {errors.suburb && <p className="text-xs text-red-500">{errors.suburb}</p>}
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <Label htmlFor="state">State <span className="text-red-500">*</span></Label>
+                    <Select value={form.state} onValueChange={v => setField("state", v)}>
+                      <SelectTrigger id="state">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATES.map(s => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="col-span-1 space-y-1.5">
+                    <Label htmlFor="postcode">Postcode <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="postcode"
+                      value={form.postcode}
+                      onChange={e => setField("postcode", e.target.value)}
+                      placeholder="3000"
+                      maxLength={4}
+                    />
+                    {errors.postcode && <p className="text-xs text-red-500">{errors.postcode}</p>}
+                  </div>
+                </div>
+
+                {/* Total Lots + Financial Year Start row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="totalLots">Total Lots <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="totalLots"
+                      type="number"
+                      min={2}
+                      value={form.totalLots}
+                      onChange={e => setField("totalLots", e.target.value)}
+                      placeholder="e.g. 24"
+                    />
+                    {errors.totalLots && <p className="text-xs text-red-500">{errors.totalLots}</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="financialYearStart">Financial Year Start <span className="text-red-500">*</span></Label>
+                    <Select value={form.financialYearStart} onValueChange={v => setField("financialYearStart", v)}>
+                      <SelectTrigger id="financialYearStart">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MONTHS.map(m => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
+                  <Button type="submit">Add Plan</Button>
+                </div>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

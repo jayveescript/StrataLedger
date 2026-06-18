@@ -5,13 +5,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { mockLevies } from "@/lib/mock-data/levies"
 import { mockLots } from "@/lib/mock-data/lots"
 import { mockOwners } from "@/lib/mock-data/owners"
 import { mockStrataPlans } from "@/lib/mock-data/strata-plans"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { Search, DollarSign, AlertTriangle, TrendingDown, Bell, CheckSquare } from "lucide-react"
+import { Search, DollarSign, AlertTriangle, TrendingDown, Bell, CheckSquare, CheckCircle2 } from "lucide-react"
+
+const TODAY = "2026-06-18"
 
 function LevyBadge({ status }: { status: string }) {
   switch (status) {
@@ -23,10 +28,352 @@ function LevyBadge({ status }: { status: string }) {
   }
 }
 
+// ---------- Issue Levy Dialog ----------
+type IssueLevyForm = {
+  strataplanId: string
+  quarter: string
+  fundType: string
+  adminAmount: string
+  capitalAmount: string
+  dueDate: string
+  issueDate: string
+}
+
+const defaultIssueLevyForm: IssueLevyForm = {
+  strataplanId: "",
+  quarter: "",
+  fundType: "both",
+  adminAmount: "",
+  capitalAmount: "",
+  dueDate: "",
+  issueDate: TODAY,
+}
+
+function IssueLevyDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  const [success, setSuccess] = useState(false)
+  const [form, setForm] = useState<IssueLevyForm>(defaultIssueLevyForm)
+
+  function reset() {
+    setForm(defaultIssueLevyForm)
+    setSuccess(false)
+  }
+
+  function handleClose(v: boolean) {
+    if (!v) reset()
+    onOpenChange(v)
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSuccess(true)
+  }
+
+  const plan = mockStrataPlans.find(p => p.id === form.strataplanId)
+  const adminDisabled = form.fundType === "capital"
+  const capitalDisabled = form.fundType === "admin"
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-lg">
+        {success ? (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <CheckCircle2 className="w-14 h-14 text-green-500" />
+            <DialogHeader>
+              <DialogTitle>Levies Issued Successfully</DialogTitle>
+              <DialogDescription>
+                {form.quarter} levies have been issued
+                {plan ? ` for ${plan.name}` : ""} and are ready for distribution.
+              </DialogDescription>
+            </DialogHeader>
+            <Button className="mt-2 w-full" onClick={() => handleClose(false)}>Done</Button>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Issue Q4 Levies</DialogTitle>
+              <DialogDescription>Issue levies to all lot owners for the selected quarter and plan.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 mt-1">
+              <div className="space-y-1.5">
+                <Label htmlFor="il-plan">Strata Plan <span className="text-red-500">*</span></Label>
+                <Select
+                  value={form.strataplanId}
+                  onValueChange={v => setForm(f => ({ ...f, strataplanId: v }))}
+                  required
+                >
+                  <SelectTrigger id="il-plan"><SelectValue placeholder="Select a plan" /></SelectTrigger>
+                  <SelectContent>
+                    {mockStrataPlans.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="il-quarter">Quarter <span className="text-red-500">*</span></Label>
+                <Input
+                  id="il-quarter"
+                  placeholder="Q4 FY2026"
+                  value={form.quarter}
+                  onChange={e => setForm(f => ({ ...f, quarter: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="il-fund">Fund Type <span className="text-red-500">*</span></Label>
+                <Select value={form.fundType} onValueChange={v => setForm(f => ({ ...f, fundType: v }))}>
+                  <SelectTrigger id="il-fund"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="both">Both Funds</SelectItem>
+                    <SelectItem value="admin">Admin Fund Only</SelectItem>
+                    <SelectItem value="capital">Capital Works Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="il-admin">Admin Fund per Lot <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="il-admin"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="850.00"
+                    value={form.adminAmount}
+                    onChange={e => setForm(f => ({ ...f, adminAmount: e.target.value }))}
+                    required={!adminDisabled}
+                    disabled={adminDisabled}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="il-capital">Capital Works per Lot <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="il-capital"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="400.00"
+                    value={form.capitalAmount}
+                    onChange={e => setForm(f => ({ ...f, capitalAmount: e.target.value }))}
+                    required={!capitalDisabled}
+                    disabled={capitalDisabled}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="il-due">Due Date <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="il-due"
+                    type="date"
+                    value={form.dueDate}
+                    onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="il-issue">Issue Date <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="il-issue"
+                    type="date"
+                    value={form.issueDate}
+                    onChange={e => setForm(f => ({ ...f, issueDate: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => handleClose(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">Issue Levies</Button>
+              </div>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ---------- Record Payment Dialog ----------
+type Levy = typeof mockLevies[0]
+
+type RecordPaymentForm = {
+  amount: string
+  paymentDate: string
+  method: string
+  reference: string
+  notes: string
+}
+
+const defaultPaymentForm: RecordPaymentForm = {
+  amount: "",
+  paymentDate: TODAY,
+  method: "eft",
+  reference: "",
+  notes: "",
+}
+
+function RecordPaymentDialog({
+  levy,
+  onOpenChange,
+}: {
+  levy: Levy | null
+  onOpenChange: (v: boolean) => void
+}) {
+  const open = levy !== null
+  const outstanding = levy ? levy.amount - levy.paidAmount : 0
+
+  const [success, setSuccess] = useState(false)
+  const [form, setForm] = useState<RecordPaymentForm>(defaultPaymentForm)
+
+  function reset() {
+    setForm(defaultPaymentForm)
+    setSuccess(false)
+  }
+
+  function handleClose(v: boolean) {
+    if (!v) {
+      reset()
+      onOpenChange(false)
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSuccess(true)
+  }
+
+  const lot = levy ? mockLots.find(l => l.id === levy.lotId) : null
+  const owner = levy ? mockOwners.find(o => o.id === levy.ownerId) : null
+  const displayAmount = form.amount ? formatCurrency(parseFloat(form.amount)) : ""
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-md">
+        {success ? (
+          <div className="flex flex-col items-center gap-4 py-6 text-center">
+            <CheckCircle2 className="w-14 h-14 text-green-500" />
+            <DialogHeader>
+              <DialogTitle>Payment Recorded</DialogTitle>
+              <DialogDescription>
+                {displayAmount && <>{displayAmount} payment for</>}{" "}
+                {lot?.lotNumber ?? levy?.reference} has been recorded successfully.
+              </DialogDescription>
+            </DialogHeader>
+            <Button className="mt-2 w-full" onClick={() => handleClose(false)}>Done</Button>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Record Payment</DialogTitle>
+              <DialogDescription>
+                {lot?.lotNumber && owner
+                  ? `${lot.lotNumber} — ${owner.firstName} ${owner.lastName} (${levy?.reference})`
+                  : levy?.reference ?? ""}
+              </DialogDescription>
+            </DialogHeader>
+
+            {levy && (
+              <div className="flex items-center justify-between text-sm bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+                <span className="text-slate-500">Outstanding balance</span>
+                <span className="font-semibold text-slate-900">{formatCurrency(outstanding)}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="rp-amount">Amount Paid <span className="text-red-500">*</span></Label>
+                <Input
+                  id="rp-amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder={outstanding > 0 ? outstanding.toFixed(2) : "0.00"}
+                  value={form.amount}
+                  onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="rp-date">Payment Date <span className="text-red-500">*</span></Label>
+                <Input
+                  id="rp-date"
+                  type="date"
+                  value={form.paymentDate}
+                  onChange={e => setForm(f => ({ ...f, paymentDate: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="rp-method">Payment Method <span className="text-red-500">*</span></Label>
+                <Select value={form.method} onValueChange={v => setForm(f => ({ ...f, method: v }))}>
+                  <SelectTrigger id="rp-method"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="eft">EFT / Direct Debit</SelectItem>
+                    <SelectItem value="bpay">BPay</SelectItem>
+                    <SelectItem value="cheque">Cheque</SelectItem>
+                    <SelectItem value="cash">Cash</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="rp-ref">
+                  Reference Number{" "}
+                  <span className="text-slate-400 font-normal">(optional)</span>
+                </Label>
+                <Input
+                  id="rp-ref"
+                  placeholder="e.g. BSB/Acc or receipt number"
+                  value={form.reference}
+                  onChange={e => setForm(f => ({ ...f, reference: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="rp-notes">
+                  Notes{" "}
+                  <span className="text-slate-400 font-normal">(optional)</span>
+                </Label>
+                <Textarea
+                  id="rp-notes"
+                  placeholder="Any additional notes"
+                  rows={3}
+                  value={form.notes}
+                  onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <Button type="button" variant="outline" className="flex-1" onClick={() => handleClose(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="flex-1">Record Payment</Button>
+              </div>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ---------- Page ----------
 export default function LeviesPage() {
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [planFilter, setPlanFilter] = useState("all")
+  const [issueLevyOpen, setIssueLevyOpen] = useState(false)
+  const [paymentLevy, setPaymentLevy] = useState<typeof mockLevies[0] | null>(null)
 
   const totalIssued = mockLevies.reduce((s, l) => s + l.amount, 0)
   const totalCollected = mockLevies.filter(l => l.status === "paid").reduce((s, l) => s + l.paidAmount, 0)
@@ -123,7 +470,7 @@ export default function LeviesPage() {
               <SelectItem value="partial">Partial</SelectItem>
             </SelectContent>
           </Select>
-          <Button>Issue Q4 Levies</Button>
+          <Button onClick={() => setIssueLevyOpen(true)}>Issue Q4 Levies</Button>
         </div>
 
         {/* Table */}
@@ -166,7 +513,12 @@ export default function LeviesPage() {
                             </Button>
                           )}
                           {(levy.status === "unpaid" || levy.status === "partial") && (
-                            <Button size="sm" variant="outline" className="text-xs">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs"
+                              onClick={() => setPaymentLevy(levy)}
+                            >
                               Record Payment
                             </Button>
                           )}
@@ -183,6 +535,9 @@ export default function LeviesPage() {
           </CardContent>
         </Card>
       </div>
+
+      <IssueLevyDialog open={issueLevyOpen} onOpenChange={setIssueLevyOpen} />
+      <RecordPaymentDialog levy={paymentLevy} onOpenChange={() => setPaymentLevy(null)} />
     </div>
   )
 }
