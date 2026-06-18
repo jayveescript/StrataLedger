@@ -6,25 +6,34 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --background: var(--brand-surface-bg);
+    --foreground: var(--brand-text-primary);
+
+    --card: var(--brand-surface-card);
+    --card-foreground: var(--brand-text-primary);
+
+    --popover: var(--brand-surface-card);
+    --popover-foreground: var(--brand-text-primary);
+
     --primary: var(--brand-primary);
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: var(--brand-primary-fg);
+
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
+
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted-foreground: var(--brand-text-muted);
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+
+    --destructive: var(--brand-error);
+    --destructive-foreground: var(--brand-error-fg);
+
+    --border: var(--brand-border);
+    --input: var(--brand-border);
     --ring: var(--brand-primary);
+
     --radius: 0.5rem;
   }
 }

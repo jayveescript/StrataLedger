@@ -8,20 +8,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-blue-600 text-white hover:bg-blue-700",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
-        outline: "border border-slate-200 bg-white hover:bg-slate-50 text-slate-900",
-        secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
-        ghost: "hover:bg-slate-100 text-slate-900",
-        link: "text-blue-600 underline-offset-4 hover:underline",
-        success: "bg-green-600 text-white hover:bg-green-700",
-        warning: "bg-amber-500 text-white hover:bg-amber-600",
+        default:     "bg-brand-primary text-brand-primary-fg hover:bg-brand-primary/90",
+        destructive: "bg-brand-error text-brand-error-fg hover:bg-brand-error/90",
+        success:     "bg-brand-success text-brand-success-fg hover:bg-brand-success/90",
+        warning:     "bg-brand-warning text-brand-warning-fg hover:bg-brand-warning/90",
+        outline:     "border border-slate-200 bg-white hover:bg-slate-50 text-slate-900",
+        secondary:   "bg-slate-100 text-slate-900 hover:bg-slate-200",
+        ghost:       "hover:bg-slate-100 text-slate-900",
+        link:        "text-brand-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-12 rounded-lg px-8 text-base",
-        icon: "h-10 w-10",
+        sm:      "h-8 rounded-md px-3 text-xs",
+        lg:      "h-12 rounded-lg px-8 text-base",
+        icon:    "h-10 w-10",
       },
     },
     defaultVariants: {
