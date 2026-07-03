@@ -2,23 +2,33 @@ import Link from "next/link"
 import {
   Building2,
   Shield,
+  Lock,
+  KeyRound,
   ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-const endpoints: { method: "GET" | "POST"; path: string }[] = [
-  { method: "GET",  path: "/api/v1/strata-plans" },
-  { method: "GET",  path: "/api/v1/strata-plans/{id}" },
-  { method: "GET",  path: "/api/v1/lots" },
-  { method: "GET",  path: "/api/v1/owners" },
-  { method: "GET",  path: "/api/v1/levies" },
-  { method: "GET",  path: "/api/v1/expenses" },
-  { method: "GET",  path: "/api/v1/funds/balance" },
-  { method: "GET",  path: "/api/v1/reports/financial-statement" },
-  { method: "GET",  path: "/api/v1/reports/levy-arrears" },
-  { method: "POST", path: "/api/v1/payments" },
-  { method: "POST", path: "/api/v1/expenses" },
-  { method: "GET",  path: "/api/v1/audit-trail" },
+const endpoints: { method: "GET" | "POST"; path: string; scope: string }[] = [
+  { method: "GET",  path: "/api/v1/strata-plans",                scope: "read:plans" },
+  { method: "GET",  path: "/api/v1/strata-plans/{id}",           scope: "read:plans" },
+  { method: "GET",  path: "/api/v1/lots",                        scope: "read:plans" },
+  { method: "GET",  path: "/api/v1/owners",                      scope: "read:owners" },
+  { method: "GET",  path: "/api/v1/levies",                      scope: "read:levies" },
+  { method: "GET",  path: "/api/v1/expenses",                    scope: "read:expenses" },
+  { method: "GET",  path: "/api/v1/funds/balance",               scope: "read:funds" },
+  { method: "GET",  path: "/api/v1/reports/financial-statement", scope: "read:reports" },
+  { method: "GET",  path: "/api/v1/reports/levy-arrears",        scope: "read:reports" },
+  { method: "POST", path: "/api/v1/payments",                    scope: "write:payments" },
+  { method: "POST", path: "/api/v1/expenses",                    scope: "write:expenses" },
+  { method: "GET",  path: "/api/v1/audit-trail",                 scope: "read:audit" },
+]
+
+const errorCodes = [
+  { status: "400", error: "invalid_request / unsupported_grant_type / invalid_scope", desc: "Malformed request or unsupported OAuth parameters" },
+  { status: "401", error: "invalid_client / invalid_token", desc: "Bad client credentials, or a missing/expired bearer token (see WWW-Authenticate header)" },
+  { status: "403", error: "insufficient_scope", desc: "Token is valid but doesn't carry the scope this endpoint requires" },
+  { status: "422", error: "validation_failed", desc: "Write request body failed validation" },
+  { status: "429", error: "slow_down", desc: "Token endpoint rate limit hit — respect Retry-After" },
 ]
 
 const useCases = [
@@ -102,16 +112,96 @@ export default function ApiDocsPage() {
         </div>
       </section>
 
-      {/* AVAILABLE ENDPOINTS */}
+      {/* AUTHENTICATION */}
       <section className="py-16 px-6 bg-slate-50">
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
+            <div className="flex items-center gap-2 mb-2">
+              <KeyRound className="w-5 h-5 text-blue-600" />
+              <h2 className="text-2xl font-bold text-slate-900">Authentication</h2>
+            </div>
+            <p className="text-slate-500">
+              OAuth 2.0 client credentials flow (RFC 6749). Exchange your client credentials for a
+              short-lived JWT, then send it as a Bearer token (RFC 6750) on every request.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <div className="text-sm font-semibold text-slate-700 mb-2">1 — Request an access token</div>
+              <div className="bg-slate-900 rounded-2xl p-6 font-mono text-sm overflow-x-auto text-slate-100 leading-relaxed">
+                <div className="text-slate-400"># Token endpoint — client_credentials grant</div>
+                <div>curl -X POST https://your-deployment.vercel.app/api/oauth/token \</div>
+                <div>{"  "}-u demo_readonly:sl_demo_readonly_4f8a2b1c9d3e \</div>
+                <div>{"  "}-d grant_type=client_credentials</div>
+                <div className="mt-4 text-slate-400"># Response</div>
+                <div>{"{"}</div>
+                <div>{"  "}&quot;access_token&quot;: &quot;eyJhbGciOiJIUzI1NiIs...&quot;,</div>
+                <div>{"  "}&quot;token_type&quot;: &quot;Bearer&quot;,</div>
+                <div>{"  "}&quot;expires_in&quot;: 3600,</div>
+                <div>{"  "}&quot;scope&quot;: &quot;read:plans read:owners read:levies ...&quot;</div>
+                <div>{"}"}</div>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-sm font-semibold text-slate-700 mb-2">2 — Call the API with the Bearer token</div>
+              <div className="bg-slate-900 rounded-2xl p-6 font-mono text-sm overflow-x-auto text-slate-100 leading-relaxed">
+                <div>curl https://your-deployment.vercel.app/api/v1/levies?status=overdue \</div>
+                <div>{"  "}-H &quot;Authorization: Bearer $ACCESS_TOKEN&quot;</div>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-800">
+              <div className="font-semibold mb-1">Demo credentials</div>
+              <p className="mb-2">This deployment serves static mock data, so two demo clients are pre-registered:</p>
+              <div className="font-mono text-xs space-y-1">
+                <div>demo_readonly / sl_demo_readonly_4f8a2b1c9d3e — all read:* scopes</div>
+                <div>demo_full_access / sl_demo_full_7c1e5d9a3b2f — read + write scopes</div>
+              </div>
+              <p className="mt-2 text-xs">Tokens expire after 1 hour. Production deployments register real clients via the <span className="font-mono">OAUTH_CLIENTS</span> env var and sign tokens with <span className="font-mono">AUTH_SECRET</span>.</p>
+            </div>
+
+            <div>
+              <div className="text-sm font-semibold text-slate-700 mb-2">Error responses</div>
+              <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Error code</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Meaning</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {errorCodes.map(e => (
+                      <tr key={e.status}>
+                        <td className="px-4 py-2.5 font-mono font-semibold text-slate-900">{e.status}</td>
+                        <td className="px-4 py-2.5 font-mono text-xs text-slate-700">{e.error}</td>
+                        <td className="px-4 py-2.5 text-slate-500 text-xs">{e.desc}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AVAILABLE ENDPOINTS */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Available Endpoints</h2>
-            <p className="text-slate-500">Full REST API coverage across your strata portfolio</p>
+            <p className="text-slate-500">
+              Full REST API coverage across your strata portfolio. Every endpoint requires a Bearer
+              token carrying the listed scope.
+            </p>
           </div>
           <div className="bg-slate-900 rounded-2xl p-6 font-mono text-sm overflow-x-auto">
             <div className="space-y-3">
-              {endpoints.map(({ method, path }) => (
+              {endpoints.map(({ method, path, scope }) => (
                 <div key={`${method}-${path}`} className="flex items-center gap-4">
                   <span
                     className={`w-12 text-right font-bold flex-shrink-0 ${
@@ -120,7 +210,11 @@ export default function ApiDocsPage() {
                   >
                     {method}
                   </span>
-                  <span className="text-white">{path}</span>
+                  <span className="text-white flex-1">{path}</span>
+                  <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 flex-shrink-0">
+                    <Lock className="w-3 h-3" />
+                    {scope}
+                  </span>
                 </div>
               ))}
             </div>
@@ -129,7 +223,7 @@ export default function ApiDocsPage() {
       </section>
 
       {/* USE CASES */}
-      <section className="py-16 px-6 bg-white">
+      <section className="py-16 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">What you can build</h2>
@@ -153,13 +247,14 @@ export default function ApiDocsPage() {
       {/* FOOTER CTA */}
       <section className="py-16 px-6 bg-gradient-to-br from-blue-700 to-blue-900 text-white">
         <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-3">API documentation coming at launch</h2>
+          <h2 className="text-2xl font-bold mb-3">The API is live on this deployment</h2>
           <p className="text-blue-200 mb-8 text-base">
-            Be among the first to get access and shape our developer experience.
+            Grab a token with the demo credentials above and start exploring — every endpoint
+            serves the same mock data you see in the app.
           </p>
-          <Link href="/#waitlist">
+          <Link href="/dashboard">
             <Button className="bg-white text-blue-700 hover:bg-blue-50 font-semibold px-8">
-              Join waitlist for API access <ChevronRight className="ml-1 w-4 h-4" />
+              Explore the app <ChevronRight className="ml-1 w-4 h-4" />
             </Button>
           </Link>
         </div>
