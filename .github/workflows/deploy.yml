@@ -1,8 +1,11 @@
-name: Deploy to GitHub Pages
+name: Deploy Demo to GitHub Pages
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'demo/**'
+      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: write
@@ -12,6 +15,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,4 +28,4 @@ jobs:
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./out
+          publish_dir: ./demo/out

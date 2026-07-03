@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StrataLedger
 
-## Getting Started
+Transparent strata fund management for Australian owners corporations.
 
-First, run the development server:
+## Repository Structure
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+├── demo/   Static demo (Next.js 14, static export → GitHub Pages)
+└── app/    Production app (Next.js 15, React 19, Tailwind CSS v4 → Vercel)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### `demo/` — Static Demo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The original static-export build, deployed to GitHub Pages via the workflow in
+`.github/workflows/deploy.yml` (triggers on pushes that touch `demo/`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd demo
+npm install
+npm run dev
+```
 
-## Learn More
+### `app/` — Production App (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
+The current application, built on the latest stack:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Next.js 15** (App Router)
+- **React 19**
+- **Tailwind CSS v4** (CSS-first config in `app/globals.css` — no `tailwind.config`)
+- **TypeScript** (strict)
+- **shadcn/ui**-style components (Radix UI + CVA)
+- **Recharts** for data visualization
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+cd app
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+#### Deploying to Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Import this repository into Vercel
+2. Set **Root Directory** to `app`
+3. Framework preset: **Next.js** (auto-detected) — no other configuration needed
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Features
+
+- Manager portal: dashboard, strata plans, owners, levies (incl. debt recovery),
+  expenses, suppliers & work orders, commission disclosure register, reports
+  (incl. auditor workflow), capital works (special levy risk predictor),
+  AGM & voting, complaints (VCAT package generator), settings (branding, handover pack)
+- **3-layer Strata Rules Engine** (`/rules`): L1 State Law (NSW/VIC/QLD) →
+  L2 Company Policy → L3 Building Override, with a rule resolver that enforces
+  legal minimums/maximums and a full rule inspector UI
+- Owner portal: levies, fund balances, documents, complaints lodgement
+- Public pages: landing, security & compliance, API docs
+
+All data is static mock data — no backend.

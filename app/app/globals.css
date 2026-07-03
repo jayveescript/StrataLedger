@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+:root {
+  /* Brand tokens (from lib/branding.json) */
+  --brand-primary: #84cc16;
+  --brand-primary-fg: #1a2e05;
+  --brand-secondary: #d1d5db;
+  --brand-secondary-fg: #111827;
+  --brand-success: #16a34a;
+  --brand-success-fg: #ffffff;
+  --brand-warning: #d97706;
+  --brand-warning-fg: #ffffff;
+  --brand-error: #dc2626;
+  --brand-error-fg: #ffffff;
+  --brand-info: #2563eb;
+  --brand-info-fg: #ffffff;
+  --brand-text-primary: #0f172a;
+  --brand-text-secondary: #475569;
+  --brand-text-muted: #94a3b8;
+  --brand-surface-bg: #ffffff;
+  --brand-surface-card: #ffffff;
+  --brand-border: #e2e8f0;
+
+  /* shadcn/ui tokens */
+  --background: var(--brand-surface-bg);
+  --foreground: var(--brand-text-primary);
+  --card: var(--brand-surface-card);
+  --card-foreground: var(--brand-text-primary);
+  --popover: var(--brand-surface-card);
+  --popover-foreground: var(--brand-text-primary);
+  --primary: var(--brand-primary);
+  --primary-foreground: var(--brand-primary-fg);
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: var(--brand-text-muted);
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+  --destructive: var(--brand-error);
+  --destructive-foreground: var(--brand-error-fg);
+  --border: var(--brand-border);
+  --input: var(--brand-border);
+  --ring: var(--brand-primary);
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-fg: var(--brand-primary-fg);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-secondary-fg: var(--brand-secondary-fg);
+  --color-brand-success: var(--brand-success);
+  --color-brand-success-fg: var(--brand-success-fg);
+  --color-brand-warning: var(--brand-warning);
+  --color-brand-warning-fg: var(--brand-warning-fg);
+  --color-brand-error: var(--brand-error);
+  --color-brand-error-fg: var(--brand-error-fg);
+  --color-brand-info: var(--brand-info);
+  --color-brand-info-fg: var(--brand-info-fg);
+  --color-brand-text-primary: var(--brand-text-primary);
+  --color-brand-text-secondary: var(--brand-text-secondary);
+  --color-brand-text-muted: var(--brand-text-muted);
+  --color-brand-surface: var(--brand-surface-bg);
+  --color-brand-surface-card: var(--brand-surface-card);
+  --color-brand-border: var(--brand-border);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  /* Tailwind v3 compat: default all borders to the theme border color */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+}

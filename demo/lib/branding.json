@@ -1,0 +1,30 @@
+{
+  "name": "StrataLedger",
+  "logoMark": "SL",
+
+  "primaryColor": "#84cc16",
+  "primaryForeground": "#1a2e05",
+
+  "secondaryColor": "#d1d5db",
+  "secondaryForeground": "#111827",
+
+  "successColor": "#16a34a",
+  "successForeground": "#ffffff",
+
+  "warningColor": "#d97706",
+  "warningForeground": "#ffffff",
+
+  "errorColor": "#dc2626",
+  "errorForeground": "#ffffff",
+
+  "infoColor": "#2563eb",
+  "infoForeground": "#ffffff",
+
+  "textPrimary": "#0f172a",
+  "textSecondary": "#475569",
+  "textMuted": "#94a3b8",
+
+  "surfaceBg": "#ffffff",
+  "surfaceCard": "#ffffff",
+  "borderColor": "#e2e8f0"
+}
