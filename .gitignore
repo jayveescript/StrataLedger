@@ -37,3 +37,10 @@ next-env.d.ts
 
 # Claude Code session data
 .claude/
+
+# .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/keys/
+*.user
+TestResults/
