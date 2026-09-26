@@ -54,5 +54,20 @@ public sealed class Lot : TenantEntity
         }
     }
 
+    public decimal UnallocatedShare => 100m - Ownerships.Sum(o => o.SharePercent);
+
+    /// <summary>Links an owner with whatever share is still unallocated. Returns false when the lot is fully owned.</summary>
+    public bool AssignRemainingShare(Guid ownerId)
+    {
+        var remaining = UnallocatedShare;
+        if (remaining <= 0 || Ownerships.Any(o => o.OwnerId == ownerId))
+        {
+            return false;
+        }
+
+        AssignOwner(ownerId, remaining);
+        return true;
+    }
+
     public bool RemoveOwner(Guid ownerId) => Ownerships.RemoveAll(o => o.OwnerId == ownerId) > 0;
 }

@@ -15,13 +15,14 @@ public sealed class JwtKeyProvider
     public JwtKeyProvider(IOptions<JwtOptions> options, IHostEnvironment environment)
     {
         var rsa = RSA.Create();
-        var pem = options.Value.SigningKeyPem;
+        var pem = options.Value.SigningKeyPem
+            ?? (options.Value.SigningKeyPath is { Length: > 0 } path ? File.ReadAllText(path) : null);
 
         if (string.IsNullOrWhiteSpace(pem))
         {
             if (!environment.IsDevelopment() && !environment.IsEnvironment("Testing"))
             {
-                throw new InvalidOperationException("Jwt:SigningKeyPem must be configured outside Development.");
+                throw new InvalidOperationException("Jwt:SigningKeyPem or Jwt:SigningKeyPath must be configured outside Development.");
             }
 
             pem = LoadOrCreateDevKey(options.Value.DevKeyPath, environment);

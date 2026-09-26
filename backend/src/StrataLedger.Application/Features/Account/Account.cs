@@ -61,13 +61,14 @@ public sealed class ChangePasswordHandler(
     public async Task<Result<Unit>> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
         var user = (await users.FindByIdAsync(currentUser.RequiredUserId.ToString()))!;
+        var previousHash = user.PasswordHash;
         var result = await users.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
         if (!result.Succeeded)
         {
             return result.ToError("newPassword");
         }
 
-        await PasswordChangeSideEffects.ApplyAsync(user, history, sessions, audit, outbox, clock,
+        await PasswordChangeSideEffects.ApplyAsync(user, previousHash, history, sessions, audit, outbox, clock,
             AuditAction.PasswordChanged, cancellationToken);
         return Unit.Value;
     }

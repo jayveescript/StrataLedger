@@ -7,8 +7,11 @@ public sealed class JwtOptions
     public string Issuer { get; set; } = "strataledger";
     public string Audience { get; set; } = "strataledger-web";
 
-    /// <summary>PEM-encoded RSA private key. Required outside Development.</summary>
+    /// <summary>PEM-encoded RSA private key. Outside Development this or <see cref="SigningKeyPath"/> is required.</summary>
     public string? SigningKeyPem { get; set; }
+
+    /// <summary>Path to a PEM file (e.g. a Docker/Kubernetes secret mount).</summary>
+    public string? SigningKeyPath { get; set; }
 
     /// <summary>Development only: where an auto-generated key is persisted.</summary>
     public string DevKeyPath { get; set; } = "keys/jwt-dev.pem";

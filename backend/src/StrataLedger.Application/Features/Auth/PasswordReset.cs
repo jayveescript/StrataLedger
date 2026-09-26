@@ -71,13 +71,14 @@ public sealed class ResetPasswordHandler(
             return AuthErrors.InvalidResetToken;
         }
 
+        var previousHash = user.PasswordHash;
         var result = await users.ResetPasswordAsync(user, request.Token, request.NewPassword);
         if (!result.Succeeded)
         {
             return result.ToError("newPassword", AuthErrors.InvalidResetToken);
         }
 
-        await PasswordChangeSideEffects.ApplyAsync(user, history, sessions, audit, outbox, clock,
+        await PasswordChangeSideEffects.ApplyAsync(user, previousHash, history, sessions, audit, outbox, clock,
             AuditAction.PasswordReset, cancellationToken);
         await users.SetLockoutEndDateAsync(user, null);
         return Unit.Value;
@@ -86,13 +87,21 @@ public sealed class ResetPasswordHandler(
 
 internal static class PasswordChangeSideEffects
 {
-    public static async Task ApplyAsync(ApplicationUser user, IRepository<PasswordHistoryEntry> history,
+    /// <summary>
+    /// Records the outgoing password in history (the current one is always checked separately), revokes every session,
+    /// audits and notifies the user.
+    /// </summary>
+    public static async Task ApplyAsync(ApplicationUser user, string? previousHash, IRepository<PasswordHistoryEntry> history,
         IAuthSessionService sessions, IAuditWriter audit, IEmailOutbox outbox, TimeProvider clock, AuditAction action,
         CancellationToken ct)
     {
         var now = clock.GetUtcNow();
         user.PasswordChangedAt = now;
-        history.Add(new PasswordHistoryEntry(user.Id, user.PasswordHash!, now));
+        if (!string.IsNullOrEmpty(previousHash))
+        {
+            history.Add(new PasswordHistoryEntry(user.Id, previousHash, now));
+        }
+
         await sessions.RevokeAllForUserAsync(user.Id, "password changed", ct);
         await audit.WriteSecurityEventAsync(action, user.Id, user.CompanyId, null, ct);
         await outbox.EnqueueAsync(user.CompanyId, user.Email!, user.FullName, EmailTemplate.PasswordChanged,

@@ -146,7 +146,7 @@ public sealed class AssignLotOwnerHandler(IRepository<Lot> lots, IRepository<Own
             (_, false) => Error.NotFound("Owner"),
             _ when lot.Ownerships.Any(o => o.OwnerId == request.OwnerId) =>
                 Error.Conflict("lot.owner_exists", "This owner is already assigned to the lot."),
-            _ when lot.Ownerships.Sum(o => o.SharePercent) + request.SharePercent > 100 =>
+            _ when request.SharePercent > lot.UnallocatedShare =>
                 Error.Validation("lot.share_exceeded", "Ownership shares for a lot cannot exceed 100%."),
             _ => Assign(lot, request),
         };

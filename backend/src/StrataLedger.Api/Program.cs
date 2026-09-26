@@ -59,8 +59,12 @@ builder.Services.Configure<ForwardedHeadersOptions>(o =>
     o.ForwardLimit = 1;
 });
 
-builder.Services.AddHealthChecks()
+var healthChecks = builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("Postgres")!, name: "postgres", tags: ["ready"]);
+if (builder.Configuration.GetConnectionString("Redis") is { Length: > 0 } redisConnection)
+{
+    healthChecks.AddRedis(redisConnection, name: "redis", tags: ["ready"]);
+}
 
 var app = builder.Build();
 

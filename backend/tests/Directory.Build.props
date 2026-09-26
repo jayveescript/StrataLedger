@@ -1,0 +1,8 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <!-- Test naming (underscores), test doubles and fixtures don't follow library analyzer rules. -->
+    <NoWarn>$(NoWarn);CA1707;CA1859;CA1001;CA1063;CA1816;CA2000;CA1305;CA2201;CA1861;CA1812;CA2234;CA1054;CA1056;CA2007;CA5394;CA1849;CA1051</NoWarn>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

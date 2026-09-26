@@ -60,7 +60,6 @@ public sealed class AcceptInvitationHandler(
     IRepository<Invitation> invitations,
     IRepository<Owner> owners,
     IRepository<Lot> lots,
-    IRepository<PasswordHistoryEntry> history,
     UserManager<ApplicationUser> users,
     ITenantContext tenant,
     ISecureTokenGenerator tokens,
@@ -102,7 +101,6 @@ public sealed class AcceptInvitationHandler(
             return created.ToError("password");
         }
 
-        history.Add(new PasswordHistoryEntry(user.Id, user.PasswordHash!, now));
         await tenant.EnterCompanyScopeAsync(invitation.CompanyId, cancellationToken);
         await LinkOwnerAsync(invitation, user, cancellationToken);
         invitation.Accept(now);
@@ -130,7 +128,8 @@ public sealed class AcceptInvitationHandler(
         var lot = invitation.LotId is { } lotId
             ? await lots.QueryTracked().Include(l => l.Ownerships).FirstOrDefaultAsync(l => l.Id == lotId, ct)
             : null;
-        lot?.AssignOwner(owner.Id, 100m);
+        // Never over-allocate: a lot that is already fully owned keeps its existing ownership.
+        lot?.AssignRemainingShare(owner.Id);
     }
 }
 

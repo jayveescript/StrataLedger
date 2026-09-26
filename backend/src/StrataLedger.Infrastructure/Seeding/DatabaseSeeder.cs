@@ -174,13 +174,7 @@ public sealed partial class DatabaseSeeder(
             LockoutEnabled = true,
         };
 
-        var result = await users.CreateAsync(user, password);
-        if (result.Succeeded)
-        {
-            db.PasswordHistory.Add(new PasswordHistoryEntry(user.Id, user.PasswordHash!, now));
-        }
-
-        return result;
+        return await users.CreateAsync(user, password);
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeded super admin {Email}: {Succeeded} {Errors}")]

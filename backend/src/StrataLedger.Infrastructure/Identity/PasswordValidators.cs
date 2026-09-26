@@ -30,7 +30,7 @@ public sealed class BreachedPasswordValidator(IPasswordBreachChecker checker, IO
     }
 }
 
-/// <summary>Blocks reuse of the last N passwords.</summary>
+/// <summary>Blocks reuse of the current password and the previous N (history stores outgoing passwords).</summary>
 public sealed class PasswordHistoryValidator(AppDbContext db, IOptions<SecurityOptions> options)
     : IPasswordValidator<ApplicationUser>
 {
@@ -47,6 +47,12 @@ public sealed class PasswordHistoryValidator(AppDbContext db, IOptions<SecurityO
             .Take(options.Value.PasswordHistoryDepth)
             .Select(h => h.PasswordHash)
             .ToListAsync();
+
+        // The current hash is always checked too, so accounts without recorded history are still protected.
+        if (!string.IsNullOrEmpty(user.PasswordHash))
+        {
+            recent.Add(user.PasswordHash);
+        }
 
         var reused = recent.Any(hash =>
             manager.PasswordHasher.VerifyHashedPassword(user, hash, password) != PasswordVerificationResult.Failed);
