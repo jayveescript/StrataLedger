@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using StrataLedger.Application.Common.Behaviors;
 using StrataLedger.Application.Common.Messaging;
+using StrataLedger.Application.Common.Services;
 using StrataLedger.Application.Features.Auth;
 using StrataLedger.Application.Features.Companies;
 using StrataLedger.Application.Features.Invitations;
@@ -19,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<UsageLimits>();
         services.AddScoped<InvitationService>();
         services.AddScoped<InvitationRowValidator>();
+        services.AddSingleton<IRuleProvider, StateRuleProvider>();
         services.AddValidatorsFromAssembly(assembly, ServiceLifetime.Scoped, includeInternalTypes: true);
 
         var handlerRegistrations = assembly.GetTypes()
