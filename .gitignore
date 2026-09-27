@@ -36,7 +36,8 @@ yarn-error.log*
 next-env.d.ts
 
 # Claude Code session data
-.claude/
+.claude/*
+!.claude/skills/
 
 # .NET
 backend/**/bin/

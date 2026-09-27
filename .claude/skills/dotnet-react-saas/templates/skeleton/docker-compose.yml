@@ -1,0 +1,67 @@
+# Local, production-shaped stack: web (nginx + SPA) -> api (.NET) -> postgres / redis, with Mailpit catching email.
+#   docker compose up --build        then open http://localhost:8080 (app) and http://localhost:8025 (inbox)
+# Values come from .env (see .env.example). Never use these defaults in production.
+name: myapp
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: postgres
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-myapp}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./deploy/postgres-init.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "8025:8025"
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/MyApp.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${API_ENVIRONMENT:-Development}
+      ConnectionStrings__Postgres: Host=postgres;Database=myapp;Username=myapp;Password=${APP_DB_PASSWORD:-myapp}
+      ConnectionStrings__Redis: redis:6379
+      App__FrontendBaseUrl: http://localhost:8080
+      App__ApiBaseUrl: http://localhost:8080
+      Smtp__Host: mailpit
+      Smtp__Port: "1025"
+      Jwt__DevKeyPath: /tmp/keys/jwt.pem
+      Jwt__SigningKeyPath: ${JWT_SIGNING_KEY_PATH:-}
+      Seed__SuperAdminEmail: ${SUPERADMIN_EMAIL:-superadmin@myapp.local}
+      Seed__SuperAdminPassword: ${SUPERADMIN_PASSWORD:-Str@taLedger-Dev-2026!}
+      Seed__DemoData: ${SEED_DEMO_DATA:-true}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  web:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  redisdata:
