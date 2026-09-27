@@ -62,5 +62,8 @@ Skim before declaring any task done. Each item: symptom → cause → fix.
   OR unique_violation`.
 - **Sandboxed environments** may block `dot.net` installers (use distro packages, e.g. `apt install dotnet-sdk-10.0`),
   Docker daemons (point tests at a local Postgres via the env var) and third-party APIs like HIBP (fail open).
+- **Postgres container exits with `/bin/sh^M: bad interpreter`** (then the API fails with 28P01 and the site is
+  unreachable) → Git on Windows checked the init script out with CRLF → `.gitattributes` with `*.sh text eol=lf`;
+  convert existing checkouts to LF and `docker compose down -v` (init scripts only run on an empty volume).
 - **Heavy `sed` renames** broke string literals containing `\n` in replacement text and produced duplicate
   dictionary keys → re-build and grep after bulk edits.

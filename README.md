@@ -19,6 +19,10 @@ cp .env.example .env          # change the secrets
 docker compose up --build
 ```
 
+On Windows, if Postgres logs `/bin/sh^M: bad interpreter`, your checkout predates `.gitattributes`: convert
+`deploy/postgres-init.sh` to LF (or `git rm --cached -r . && git reset --hard`), then `docker compose down -v` and
+start again. Postgres only creates the app role on an empty volume, so also run `down -v` after changing `.env` passwords.
+
 - App: http://localhost:8080 · Email inbox (Mailpit): http://localhost:8025
 - Sign in as the Super Admin from `.env`. With `SEED_DEMO_DATA=true` you also get demo tenants from the prototype
   (`admin@premierstrata.com.au`, `manager@premierstrata.com.au`, owner `james.chen@email.com`, all using the
