@@ -40,7 +40,8 @@ services:
       dockerfile: src/StrataLedger.Api/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${API_ENVIRONMENT:-Development}
-      ConnectionStrings__Postgres: Host=postgres;Database=strataledger;Username=strataledger;Password=${APP_DB_PASSWORD:-strataledger}
+      # The chiseled runtime has no Kerberos library; disable the GSS probe (avoids a libgssapi_krb5 load error).
+      ConnectionStrings__Postgres: Host=postgres;Database=strataledger;Username=strataledger;Password=${APP_DB_PASSWORD:-strataledger};GSS Encryption Mode=Disable
       ConnectionStrings__Redis: redis:6379
       App__FrontendBaseUrl: http://localhost:8080
       App__ApiBaseUrl: http://localhost:8080

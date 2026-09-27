@@ -65,5 +65,7 @@ Skim before declaring any task done. Each item: symptom → cause → fix.
 - **Postgres container exits with `/bin/sh^M: bad interpreter`** (then the API fails with 28P01 and the site is
   unreachable) → Git on Windows checked the init script out with CRLF → `.gitattributes` with `*.sh text eol=lf`;
   convert existing checkouts to LF and `docker compose down -v` (init scripts only run on an empty volume).
+- **`Cannot load library libgssapi_krb5.so.2`** in the API container log → Npgsql probes GSS encryption and the
+  chiseled image has no Kerberos → add `GSS Encryption Mode=Disable` to the container connection string.
 - **Heavy `sed` renames** broke string literals containing `\n` in replacement text and produced duplicate
   dictionary keys → re-build and grep after bulk edits.
