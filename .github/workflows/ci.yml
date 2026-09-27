@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-    paths: ['backend/**', 'frontend/**', '.github/workflows/ci.yml']
+    paths: ['backend/**', 'frontend/**', '.claude/skills/**', '.github/workflows/ci.yml']
   pull_request:
-    paths: ['backend/**', 'frontend/**', '.github/workflows/ci.yml']
+    paths: ['backend/**', 'frontend/**', '.claude/skills/**', '.github/workflows/ci.yml']
 
 permissions:
   contents: read
@@ -15,6 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Unit, architecture and integration tests. Integration tests start a real PostgreSQL with Testcontainers
+  # (Docker is available on GitHub-hosted runners) — no EF in-memory fakes.
   backend:
     runs-on: ubuntu-latest
     defaults:
@@ -31,7 +33,6 @@ jobs:
         run: |
           dotnet tool restore
           dotnet ef migrations has-pending-model-changes -p src/StrataLedger.Infrastructure -s src/StrataLedger.Infrastructure
-      # Integration tests start Postgres via Testcontainers (Docker is available on GitHub runners).
       - run: dotnet test --no-build -c Release --logger "trx" --results-directory TestResults
       - uses: actions/upload-artifact@v4
         if: always()
@@ -56,3 +57,95 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # Browser end-to-end tests against the real stack: PostgreSQL service (non-superuser app role so RLS applies),
+  # the API with Development seed data, and the SPA production build served by `vite preview`.
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Create application database role
+        run: |
+          psql "postgresql://postgres:postgres@localhost:5432/postgres" \
+            -c "CREATE ROLE strataledger LOGIN PASSWORD 'strataledger' NOSUPERUSER NOBYPASSRLS;" \
+            -c "CREATE DATABASE strataledger OWNER strataledger;"
+      - name: Start API
+        working-directory: backend
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          Security__BreachedPasswordCheck: 'false'
+          BackgroundJobs__Disabled: 'true'
+        run: |
+          dotnet run --project src/StrataLedger.Api --launch-profile http > api.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf http://localhost:5080/health/ready && break; sleep 2; done
+          curl -sf http://localhost:5080/health/ready
+      - name: Install dependencies and browser
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run Playwright
+        working-directory: frontend
+        run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-artifacts
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+            backend/api.log
+
+  # Keeps the reusable skill honest: its skeleton must build and pass its own tests, and the scaffold script must
+  # produce a project that builds.
+  skill-skeleton:
+    runs-on: ubuntu-latest
+    env:
+      SKELETON: .claude/skills/dotnet-react-saas/templates/skeleton
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Skeleton backend
+        working-directory: ${{ env.SKELETON }}/backend
+        run: |
+          dotnet tool restore
+          dotnet build -c Release
+          dotnet ef migrations has-pending-model-changes -p src/MyApp.Infrastructure -s src/MyApp.Infrastructure
+          dotnet test --no-build -c Release
+      - name: Skeleton frontend
+        working-directory: ${{ env.SKELETON }}/frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run typecheck
+          npm test
+          npm run build
+      - name: Scaffold script produces a buildable project
+        run: |
+          bash .claude/skills/dotnet-react-saas/scripts/new-project.sh "$RUNNER_TEMP/acme" Acme
+          if grep -rIl --exclude-dir=node_modules -e MyApp "$RUNNER_TEMP/acme"; then echo "MyApp left after rename"; exit 1; fi
+          dotnet build "$RUNNER_TEMP/acme/backend" -c Release

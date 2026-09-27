@@ -47,6 +47,9 @@ check "Audit" "Audit trail (SaveChanges interceptor)" "*.cs" "SaveChangesInterce
 check "SaaS" "Tier / feature gating" "*.cs" "RequiresFeature|FeatureGate|IFeatureService" "monetisation.md"
 check "Ops" "Health checks" "*.cs" "MapHealthChecks" "ops.md"
 check "Tests" "Integration tests (WebApplicationFactory)" "*.cs" "WebApplicationFactory<" "testing.md#integration"
+check "Tests" "Real database in tests (Testcontainers)" "*.cs*" "Testcontainers" "testing.md#integration"
+if has "*.cs*" "UseInMemoryDatabase|EntityFrameworkCore.InMemory"; then row "Tests" "No EF in-memory database fakes" 0 "Replace with Testcontainers Postgres (testing.md#pyramid)"; else row "Tests" "No EF in-memory database fakes" 1 ""; fi
+check "Tests" "Architecture tests" "*.cs*" "NetArchTest|ArchUnitNET" "testing.md#architecture"
 fi
 
 if [ $TSX = 1 ]; then
@@ -59,9 +62,11 @@ check "Frontend" "Declarative access rules / route guards" "*.ts*" "evaluateAcce
 check "Frontend" "Brand tokens via CSS variables" "*.css" "--brand-" "frontend-architecture.md#branding"
 check "Frontend" "Forms with schema validation" "*.ts*" "zodResolver|yupResolver" "frontend-architecture.md#forms"
 check "Frontend" "Frontend tests" "*.test.ts*" "describe\(|it\(" "testing.md#frontend"
+check "Frontend" "Browser E2E tests (Playwright)" "*.ts" "@playwright/test" "testing.md#smoke"
 fi
 
 check "Ops" "Container build" "Dockerfile" "FROM " "ops.md#docker"
 check "Ops" "CI workflow" "*.yml" "dotnet test|npm test|npm run build" "ops.md#ci"
+check "Ops" "E2E tests run in CI" "*.yml" "playwright|npm run e2e" "testing.md#pyramid"
 echo
 echo "Next: read references/existing-project-audit.md and turn ❌ rows into an ordered, incremental plan."

@@ -15,7 +15,7 @@ description: >-
 # .NET + React multi-tenant SaaS architecture
 
 A proven, end-to-end architecture (reference implementation: StrataLedger) packaged as rules, reference docs and a
-**buildable skeleton** (`templates/skeleton/`: 60 backend + 19 frontend tests passing). The goal is that every
+**buildable skeleton** (`templates/skeleton/`: 70 backend incl. architecture tests, 19 frontend and 5 browser E2E tests passing in CI). The goal is that every
 project built with it is secure by default, consistent, and easy to extend one vertical slice at a time.
 
 ## Pick the mode first
@@ -54,8 +54,8 @@ conventions in an existing repo rather than imposing new names.
 9. **Frontend is atomic and data-driven:** atoms → molecules → organisms → templates → pages; menu and route guards
    come from one access-rule shape (`roles`, `permission`, `feature` → `allowed | forbidden | locked`); branding is
    CSS variables set from the signed-in tenant.
-10. **Prove it runs.** Build, unit + integration tests (real Postgres), lint/typecheck, and a browser smoke test of
-    the changed flow. Report anything not verified.
+10. **Prove it runs, in CI.** Unit, architecture, integration (real Postgres via Testcontainers — never the EF
+    in-memory provider), frontend unit tests and Playwright E2E all run in GitHub Actions. Report anything not verified.
 
 ## Where the details live (load only what the task needs)
 
@@ -92,8 +92,9 @@ retyping patterns from memory.
 
 ## Definition of done
 
-- `dotnet build` (warnings as errors) and `dotnet test` pass; `npm run lint`, `npm run typecheck`, `npm test`,
-  `npm run build` pass.
+- `dotnet build` (warnings as errors) and `dotnet test` (unit + architecture + integration on real Postgres) pass;
+  `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` pass; `npm run e2e` passes for changed flows.
+  All of these run in GitHub Actions — a new kind of test isn't done until CI runs it.
 - New endpoints: permission + feature attributes on controller *and* request, validator, paging if listing,
   integration test for the forbidden/other-tenant case.
 - New tenant tables: `ITenantOwned`/`TenantEntity`, RLS policy added, soft delete where history matters.

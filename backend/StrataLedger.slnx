@@ -6,6 +6,7 @@
     <Project Path="src/StrataLedger.Infrastructure/StrataLedger.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/StrataLedger.ArchitectureTests/StrataLedger.ArchitectureTests.csproj" />
     <Project Path="tests/StrataLedger.IntegrationTests/StrataLedger.IntegrationTests.csproj" />
     <Project Path="tests/StrataLedger.UnitTests/StrataLedger.UnitTests.csproj" />
   </Folder>

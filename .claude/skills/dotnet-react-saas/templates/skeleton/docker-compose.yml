@@ -49,7 +49,7 @@ services:
       Jwt__DevKeyPath: /tmp/keys/jwt.pem
       Jwt__SigningKeyPath: ${JWT_SIGNING_KEY_PATH:-}
       Seed__SuperAdminEmail: ${SUPERADMIN_EMAIL:-superadmin@myapp.local}
-      Seed__SuperAdminPassword: ${SUPERADMIN_PASSWORD:-Str@taLedger-Dev-2026!}
+      Seed__SuperAdminPassword: ${SUPERADMIN_PASSWORD:-Correct-Horse-Battery-9!}
       Seed__DemoData: ${SEED_DEMO_DATA:-true}
     depends_on:
       postgres: { condition: service_healthy }

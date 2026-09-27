@@ -19,9 +19,13 @@ Demo data (Development): super admin from config, tenant `admin@acme.test` / `ma
 ## Test
 
 ```bash
-cd backend && MYAPP_TEST_PG_ADMIN="Host=localhost;Username=postgres;Password=postgres" dotnet test   # or Docker for Testcontainers
+cd backend && MYAPP_TEST_PG_ADMIN="Host=localhost;Username=postgres;Password=postgres" dotnet test   # unit + architecture + integration; or Docker for Testcontainers
 cd frontend && npm run lint && npm run typecheck && npm test && npm run build
+cd frontend && npm run e2e     # Playwright; API running on a fresh database (see frontend/e2e/README.md)
 ```
+
+CI (`.github/workflows/ci.yml`) runs unit, architecture and integration tests (real Postgres via Testcontainers),
+frontend tests, and the Playwright suite against a Postgres service container.
 
 ## Extend
 

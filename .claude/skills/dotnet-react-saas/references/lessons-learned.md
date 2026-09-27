@@ -46,6 +46,14 @@ Skim before declaring any task done. Each item: symptom → cause → fix.
 - **Super Admin saw end-customer menu items** → SuperAdmin holds every permission → restrict such nav items by role.
 - **`/login` redirect before lazy home route resolved** → tests waiting on URL may see `/` briefly; wait for content.
 
+## Tests
+- **All architecture rules passed on the first run** → suspicious; add non-empty sanity asserts and mutation-test each
+  rule once (remove a `[RequiresPermission]`, drop a table from the RLS list → both must fail).
+- **Playwright strict-mode violations** → headings/buttons repeated on the page ("Sign out" in top bar and session
+  list, a tenant name inside an email) → `exact: true`, scope to landmarks.
+- **`! grep …` in a CI step never fails** → negated commands are exempt from `bash -e`; use `if grep …; then exit 1; fi`.
+- **Vitest picked up Playwright specs** → set `test.include: ['src/**/*.test.{ts,tsx}']`.
+
 ## Tooling / environment
 - **`pkill -f <pattern>` killed the shell running it** → the pattern matched the command line itself → kill by PID.
 - **WebApplicationFactory ignored test connection string** → use `builder.UseSetting` so values exist during

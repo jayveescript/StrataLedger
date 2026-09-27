@@ -19,8 +19,10 @@ Skeleton paths relative to `templates/skeleton/`.
 ## CI (`.github/workflows/ci.yml`)
 
 Backend job: setup-dotnet 10 → restore → build Release → `dotnet ef migrations has-pending-model-changes` (fails if
-someone forgot a migration) → `dotnet test` (Testcontainers uses the runner's Docker) → upload TRX. Frontend job:
-`npm ci` → lint → typecheck → test → build. Path filters + concurrency cancel.
+someone forgot a migration) → `dotnet test` (unit + architecture + integration; Testcontainers uses the runner's
+Docker) → upload TRX. Frontend job: `npm ci` → lint → typecheck → Vitest → build. E2E job (needs both): Postgres
+service + app role → API in background (wait for `/health/ready`) → `npx playwright install --with-deps chromium`
+→ `npm run e2e` → upload report/traces/API log on failure. Path filters + concurrency cancel. See `testing.md#pyramid`.
 
 ## Configuration reference
 

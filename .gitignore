@@ -45,3 +45,7 @@ backend/**/obj/
 backend/**/keys/
 *.user
 TestResults/
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/

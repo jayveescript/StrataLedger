@@ -113,13 +113,21 @@ Navigation and route guards are driven by one access rule shape (`roles`, `permi
 
 ## Testing
 
-```bash
-cd backend && dotnet test          # unit + integration (Testcontainers Postgres, or STRATALEDGER_TEST_PG_ADMIN=<admin conn>)
-cd frontend && npm test            # Vitest + Testing Library
-```
+Every kind of test runs in GitHub Actions (`.github/workflows/ci.yml`) on each PR:
 
-Integration tests boot the real API and cover tenant isolation (API + RLS), MFA enrolment and replay, lockout, refresh
-token rotation/theft detection, password reuse, tier limits (402), feature overrides, suspension, invitations and rate limiting.
+| Suite | Where | What |
+|---|---|---|
+| Unit | `backend/tests/StrataLedger.UnitTests` | domain rules, CQRS pipeline order, parsers, billing |
+| Architecture | `backend/tests/StrataLedger.ArchitectureTests` | layer boundaries, thin controllers, every request authorized, every tenant table under RLS |
+| Integration | `backend/tests/StrataLedger.IntegrationTests` | real API + **real PostgreSQL via Testcontainers** (no EF in-memory fakes): tenant isolation + RLS, MFA, lockout, refresh-token theft detection, tier limits, invitations, rate limiting |
+| Frontend unit | `frontend/src/**/*.test.ts(x)` | Vitest + Testing Library |
+| Browser E2E | `frontend/e2e` | Playwright against the running API + Postgres: sign-in incl. MFA enrollment, RBAC, reload persistence, branding, super admin |
+
+```bash
+cd backend && dotnet test          # Docker for Testcontainers, or STRATALEDGER_TEST_PG_ADMIN=<admin connection string>
+cd frontend && npm test            # Vitest
+cd frontend && npm run e2e         # Playwright; start the API on a fresh database first (see frontend/e2e/README.md)
+```
 
 ## Production checklist
 
