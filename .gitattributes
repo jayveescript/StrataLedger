@@ -1,0 +1,4 @@
+# Normalise line endings. Shell scripts run inside Linux containers and must keep LF even on Windows checkouts,
+# otherwise e.g. the Postgres init script fails with "/bin/sh^M: bad interpreter".
+* text=auto
+*.sh text eol=lf

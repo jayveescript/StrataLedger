@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.tsbuildinfo
+backend/**/bin/
+backend/**/obj/
+backend/**/keys/
+TestResults/
+*.pem
+.env
+test-results/
+playwright-report/

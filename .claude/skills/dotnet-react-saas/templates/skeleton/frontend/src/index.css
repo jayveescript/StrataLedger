@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+ * Brand tokens. Defaults mirror the prototype's branding.json; BrandProvider overwrites them at runtime with the
+ * signed-in tenant's branding, so every component re-themes without code changes.
+ */
+:root {
+  --brand-primary: #84cc16;
+  --brand-primary-fg: #1a2e05;
+  --brand-secondary: #d1d5db;
+  --brand-secondary-fg: #111827;
+  --brand-success: #16a34a;
+  --brand-warning: #d97706;
+  --brand-error: #dc2626;
+  --brand-info: #2563eb;
+  --brand-text-primary: #0f172a;
+  --brand-text-secondary: #475569;
+  --brand-text-muted: #94a3b8;
+  --brand-surface-bg: #f8fafc;
+  --brand-surface-card: #ffffff;
+  --brand-border: #e2e8f0;
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-primary: var(--brand-primary);
+  --color-primary-fg: var(--brand-primary-fg);
+  --color-secondary: var(--brand-secondary);
+  --color-secondary-fg: var(--brand-secondary-fg);
+  --color-success: var(--brand-success);
+  --color-warning: var(--brand-warning);
+  --color-danger: var(--brand-error);
+  --color-info: var(--brand-info);
+  --color-ink: var(--brand-text-primary);
+  --color-ink-soft: var(--brand-text-secondary);
+  --color-ink-muted: var(--brand-text-muted);
+  --color-surface: var(--brand-surface-bg);
+  --color-card: var(--brand-surface-card);
+  --color-line: var(--brand-border);
+  --color-sidebar: #0f172a;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    background: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+}

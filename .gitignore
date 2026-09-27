@@ -36,4 +36,16 @@ yarn-error.log*
 next-env.d.ts
 
 # Claude Code session data
-.claude/
+.claude/*
+!.claude/skills/
+
+# .NET
+backend/**/bin/
+backend/**/obj/
+backend/**/keys/
+*.user
+TestResults/
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
